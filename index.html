@@ -44,6 +44,19 @@ A purpose-built Layer-1 blockchain for stablecoin-native financial applications.
 
 </section>
 
+  <audio id="bgmusic" loop>
+  <source src="kontraa-into-the-night-uk-drill-music-20928.mp3" type="audio/mp3">
+</audio>
+
+<script>
+function startMusic() {
+    let audio = document.getElementById("bgmusic");
+    audio.play();
+    document.removeEventListener("click", startMusic);
+}
+
+document.addEventListener("click", startMusic);
+</script>
 
 
 <section class="features">
