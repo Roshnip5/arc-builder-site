@@ -6,6 +6,70 @@ color:white;
 font-family:sans-serif;
 text-align:center;
 }
+body{
+background:#090018;
+color:white;
+font-family:Arial;
+text-align:center;
+margin:0;
+}
+
+nav{
+display:flex;
+justify-content:space-between;
+padding:20px;
+background:#12002b;
+}
+
+.hero{
+padding:120px 20px;
+background:linear-gradient(135deg,#4c1d95,#7e22ce);
+}
+
+h1{
+font-size:60px;
+}
+
+.btn{
+background:#9333ea;
+color:white;
+padding:15px 30px;
+border:none;
+border-radius:15px;
+}
+
+.btn2{
+background:black;
+color:white;
+padding:15px 30px;
+border:1px solid purple;
+border-radius:15px;
+}
+
+.features{
+padding:80px;
+}
+
+.card{
+background:#130026;
+padding:30px;
+margin:20px;
+border-radius:20px;
+box-shadow:0 0 20px purple;
+}
+
+a{
+display:block;
+color:#00ffff;
+margin:20px;
+font-size:20px;
+text-decoration:none;
+}
+
+footer{
+padding:40px;
+color:gray;
+}
 
 .hero{
 padding:100px 20px;
