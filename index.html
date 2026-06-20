@@ -3,9 +3,10 @@
 <head>
 <title>ARC Builder</title>
 <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<link rel="stylesheet" href="style.css">
+
+<!-- Web3 libraries -->
+<script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
 </head>
 
 <body>
@@ -21,7 +22,6 @@
 </ul>
 </nav>
 
-
 <section class="hero">
 
 <h1>Build The Future On ARC</h1>
@@ -34,30 +34,9 @@ A purpose-built Layer-1 blockchain for stablecoin-native financial applications.
 🔗 Connect Wallet
 </button>
 
-<button onclick="playMusic()" class="btn2">
-🎵 Play Music
-</button>
-
-<audio id="bgmusic">
-<source src="music.mp3" type="audio/mpeg">
-</audio>
+<p id="status">Not connected</p>
 
 </section>
-
-  <audio id="bgmusic" loop>
-  <source src="kontraa-into-the-night-uk-drill-music-20928.mp3" type="audio/mp3">
-</audio>
-
-<script>
-function startMusic() {
-    let audio = document.getElementById("bgmusic");
-    audio.play();
-    document.removeEventListener("click", startMusic);
-}
-
-document.addEventListener("click", startMusic);
-</script>
-
 
 <section class="features">
 
@@ -85,8 +64,6 @@ document.addEventListener("click", startMusic);
 
 </section>
 
-
-
 <section class="about">
 
 <h2>🌌 About Arc Network</h2>
@@ -98,25 +75,16 @@ sub-second deterministic finality and EVM compatibility.
 
 </section>
 
-
-
 <section class="socials">
 
 <h2>🌐 Socials</h2>
 
-<a href="https://x.com/arc" target="_blank">
-🚀 ARC Official X
-</a>
-
+<a href="https://x.com/arc" target="_blank">🚀 ARC Official X</a>
 <br><br>
 
-<a href="https://x.com/Rosh_w3" target="_blank">
-🐦 Roshni X
-</a>
+<a href="https://x.com/Rosh_w3" target="_blank">🐦 Roshni X</a>
 
 </section>
-
-
 
 <section class="docs">
 
@@ -127,8 +95,6 @@ Open Docs
 </button>
 
 </section>
-
-
 
 <section class="network">
 
@@ -141,59 +107,76 @@ Open Docs
 
 </section>
 
-
-
 <footer>
-
-<p>
-💜 Built by Roshni
-</p>
-
+<p>💜 Built by Roshni</p>
 </footer>
 
-
-<script src="script.js"></script>
-
-</body>
-</html>
-
-<nav>
-<h2>🚀 ARC BUILDER</h2>
-</nav>
-
-<section class="hero">
-
-<h1>Build The Future On ARC</h1>
-
-<p>
-A purpose-built Layer-1 blockchain for stablecoin-native financial applications.
-</p>
-
-<button onclick="connectWallet()">🔗 Connect Wallet</button>
-
-<button onclick="playMusic()">🎵 Play Music</button>
-
-<audio id="bgmusic">
-<source src="kontraa-into-the-night-uk-drill-music-20928.mp3" type="audio/mpeg">
+<!-- AUDIO -->
+<audio id="bgmusic" loop>
+  <source src="kontraa-into-the-night-uk-drill-music-20928.mp3" type="audio/mp3">
 </audio>
 
-<h2>🌐 Socials</h2>
+<!-- JS -->
+<script>
+/* ================= MUSIC SYSTEM ================= */
 
-<a href="https://x.com/arc">🚀 ARC Official</a>
+let musicStarted = false;
 
-<br><br>
+function tryPlayMusic() {
+    if (musicStarted) return;
 
-<a href="https://x.com/Rosh_w3">🐦 Roshni X</a>
+    let audio = document.getElementById("bgmusic");
 
-<br><br>
+    audio.play().then(() => {
+        musicStarted = true;
+        console.log("Music started");
+    }).catch(() => {
+        console.log("Autoplay blocked");
+    });
+}
 
-<button onclick="window.open('https://docs.arc.io/')">
-📄 Documentation
-</button>
+// auto try on load
+window.addEventListener("load", tryPlayMusic);
 
-</section>
+// fallback on first interaction
+document.addEventListener("click", tryPlayMusic);
 
-<script src="script.js"></script>
+
+/* ================= WALLET SYSTEM ================= */
+
+let web3Modal;
+let provider;
+
+function initWallet() {
+    web3Modal = new window.Web3Modal.default({
+        cacheProvider: false,
+        providerOptions: {}
+    });
+}
+
+async function connectWallet() {
+    try {
+        const instance = await web3Modal.connect();
+
+        provider = new ethers.BrowserProvider(instance);
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+
+        document.getElementById("status").innerText =
+            "Connected: " + address;
+
+        instance.on("accountsChanged", (accounts) => {
+            document.getElementById("status").innerText =
+                "Connected: " + accounts[0];
+        });
+
+    } catch (err) {
+        alert("Wallet connection cancelled");
+    }
+}
+
+window.addEventListener("load", initWallet);
+</script>
 
 </body>
 </html>
