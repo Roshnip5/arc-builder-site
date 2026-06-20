@@ -1,11 +1,20 @@
 function playMusic(){
 document.getElementById("bgmusic").play();
 }
-function playMusic(){
-
-document.getElementById("music").play();
 
 }
+function playMusic(){
+document.getElementById("bgmusic").play();
+}
+
+async function connectWallet(){
+
+if(window.ethereum){
+
+await window.ethereum.request({
+method:"eth_requestAccounts"
+});
+  
 
 async function connectWallet(){
 
