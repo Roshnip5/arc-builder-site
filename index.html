@@ -1,182 +1,857 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>ARC Builder</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ARC Builder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<!-- Web3 libraries -->
-<script src="https://cdn.jsdelivr.net/npm/web3modal@1.9.12/dist/index.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.9.0/dist/ethers.umd.min.js"></script>
+    :root {
+      --bg:        #07080f;
+      --surface:   #0e1020;
+      --border:    #1e2240;
+      --arc:       #7c5cfc;
+      --arc-light: #a98bfd;
+      --arc-glow:  rgba(124,92,252,0.18);
+      --usdc:      #2775ca;
+      --text:      #e8eaf6;
+      --muted:     #6b7094;
+      --green:     #22d3a0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── GRID BG ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(124,92,252,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,92,252,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 64px;
+      background: rgba(7,8,15,.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: .05em;
+      color: var(--text);
+    }
+
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--arc);
+      box-shadow: 0 0 10px var(--arc);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 8px var(--arc); }
+      50%      { box-shadow: 0 0 18px var(--arc-light); }
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--arc-light); }
+
+    /* ── WALLET BUTTON ── */
+    #connectBtn {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .5rem 1.2rem;
+      border-radius: 8px;
+      border: 1px solid var(--arc);
+      background: var(--arc-glow);
+      color: var(--arc-light);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    #connectBtn:hover {
+      background: var(--arc);
+      color: #fff;
+      box-shadow: 0 0 20px var(--arc-glow);
+    }
+    #connectBtn.connected {
+      border-color: var(--green);
+      background: rgba(34,211,160,.1);
+      color: var(--green);
+    }
+    #connectBtn .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 7rem 2rem 5rem;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .35rem .9rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: .78rem;
+      color: var(--muted);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 1.6rem;
+    }
+    .hero-badge span { color: var(--arc-light); }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 1.2rem;
+    }
+
+    .highlight {
+      background: linear-gradient(90deg, var(--arc-light), #c4b0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      max-width: 540px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+      margin-bottom: 2.4rem;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      padding: .75rem 1.8rem;
+      border-radius: 10px;
+      border: none;
+      background: var(--arc);
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 4px 24px rgba(124,92,252,.35);
+    }
+    .btn-primary:hover {
+      background: var(--arc-light);
+      box-shadow: 0 6px 32px rgba(124,92,252,.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      padding: .75rem 1.8rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-secondary:hover { border-color: var(--arc); color: var(--arc-light); }
+
+    /* ── STATS ── */
+    .stats {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat {
+      background: var(--bg);
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.9rem;
+      font-weight: 700;
+      color: var(--arc-light);
+      line-height: 1;
+      margin-bottom: .4rem;
+    }
+
+    .stat-label {
+      font-size: .78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+    }
+
+    /* ── SECTIONS ── */
+    section {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
+
+    .section-label {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--arc);
+      font-weight: 600;
+      margin-bottom: .8rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: .8rem;
+      letter-spacing: -.01em;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 500px;
+      margin-bottom: 3rem;
+    }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.6rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .feature-card:hover {
+      border-color: var(--arc);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      background: var(--arc-glow);
+      border: 1px solid rgba(124,92,252,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: .5rem;
+    }
+
+    .feature-card p {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── NETWORK DETAILS ── */
+    .network-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .network-header {
+      padding: 1.2rem 1.6rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    .network-header .dot-green {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .network-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .network-row:last-child { border-bottom: none; }
+
+    .network-key {
+      font-size: .85rem;
+      color: var(--muted);
+    }
+
+    .network-val {
+      font-family: 'Space Mono', monospace;
+      font-size: .88rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: .8rem;
+      padding: .2rem .4rem;
+      border-radius: 4px;
+      transition: color .2s, background .2s;
+    }
+    .copy-btn:hover { color: var(--arc-light); background: var(--arc-glow); }
+
+    /* ── WALLET MODAL ── */
+    #walletModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+    }
+    #walletModal.open { display: flex; }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 420px;
+      position: relative;
+    }
+
+    .modal-box h2 {
+      font-size: 1.3rem;
+      margin-bottom: .4rem;
+    }
+
+    .modal-box p {
+      color: var(--muted);
+      font-size: .88rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .wallet-option {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: .95rem;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: .6rem;
+      transition: border-color .2s, background .2s;
+    }
+    .wallet-option:hover { border-color: var(--arc); background: var(--arc-glow); }
+
+    .wallet-option img { width: 32px; height: 32px; border-radius: 8px; }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ── STATUS TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .7rem 1.4rem;
+      font-size: .88rem;
+      color: var(--text);
+      z-index: 300;
+      transition: transform .3s;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { border-color: var(--green); color: var(--green); }
+    #toast.error   { border-color: #f87171; color: #f87171; }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    footer a { color: var(--arc-light); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      nav { padding: 0 1rem; }
+      .hero { padding: 5rem 1rem 3rem; }
+      section { padding: 3rem 1rem; }
+    }
+  </style>
 </head>
-
 <body>
 
+<!-- NAV -->
 <nav>
-<h2>🚀 ARC BUILDER</h2>
-
-<ul>
-<li>Home</li>
-<li>Features</li>
-<li>Docs</li>
-<li>Socials</li>
-</ul>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    ARC
+  </div>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#network">Network</a></li>
+    <li><a href="https://x.com/arc" target="_blank">Socials</a></li>
+    <li><a href="#" target="_blank">Docs</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:.7rem;">
+    <button id="soundBtn" onclick="toggleSound()" title="Toggle background music" style="
+      background:none;
+      border:1px solid var(--border);
+      border-radius:8px;
+      color:var(--muted);
+      padding:.45rem .7rem;
+      font-size:1rem;
+      cursor:pointer;
+      transition:all .2s;
+      line-height:1;
+    ">🔇</button>
+    <button id="connectBtn" onclick="openModal()">
+      <span class="dot"></span>
+      <span id="btnLabel">Connect Wallet</span>
+    </button>
+  </div>
 </nav>
 
-<section class="hero">
-
-<h1>Build The Future On ARC</h1>
-
-<p>
-A purpose-built Layer-1 blockchain for stablecoin-native financial applications.
-</p>
-
-<button onclick="connectWallet()" class="btn">
-🔗 Connect Wallet
-</button>
-
-<p id="status">Not connected</p>
-
-</section>
-
-<section class="features">
-
-<h2>⭐ Key Features</h2>
-
-<div class="card">
-<h3>⚡ Wallet Connect</h3>
-<p>Secure Web3 wallet connection.</p>
-</div>
-
-<div class="card">
-<h3>💲 Stablecoin Native</h3>
-<p>USDC as gas token.</p>
-</div>
-
-<div class="card">
-<h3>⛓ EVM Compatible</h3>
-<p>Deploy Solidity contracts.</p>
-</div>
-
-<div class="card">
-<h3>🛡 Post Quantum Security</h3>
-<p>Future-proof wallet signatures.</p>
-</div>
-
-</section>
-
-<section class="about">
-
-<h2>🌌 About Arc Network</h2>
-
-<p>
-Arc is a Layer-1 blockchain with USDC as gas,
-sub-second deterministic finality and EVM compatibility.
-</p>
-
-</section>
-
-<section class="socials">
-
-<h2>🌐 Socials</h2>
-
-<a href="https://x.com/arc" target="_blank">🚀 ARC Official X</a>
-<br><br>
-
-<a href="https://x.com/Rosh_w3" target="_blank">🐦 Roshni X</a>
-
-</section>
-
-<section class="docs">
-
-<h2>📄 Documentation</h2>
-
-<button onclick="window.open('https://docs.arc.io/')">
-Open Docs
-</button>
-
-</section>
-
-<section class="network">
-
-<h2>📊 Network Details</h2>
-
-<p>Gas Token : USDC</p>
-<p>Chain ID : 5042002</p>
-<p>Block Time : 0.48s</p>
-<p>Consensus : Malachite BFT</p>
-
-</section>
-
-<footer>
-<p>💜 Built by Roshni</p>
-</footer>
-
-<!-- AUDIO -->
-<audio id="bgmusic" loop>
-  <source src="kontraa-into-the-night-uk-drill-music-20928.mp3" type="audio/mp3">
+<!-- BACKGROUND AUDIO -->
+<audio id="bgAudio" loop preload="auto">
+  <source src="bg.mp3" type="audio/mpeg"/>
 </audio>
 
-<!-- JS -->
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">⚡ <span>Layer-1 Blockchain</span> · Live on Testnet</div>
+  <h1>Build The Future<br/>On <span class="highlight">ARC Network</span></h1>
+  <p>A purpose-built L1 for stablecoin-native financial apps — pay gas in USDC, deploy Solidity, finalize in under a second.</p>
+  <div class="hero-cta">
+    <button class="btn-primary" onclick="openModal()">Connect Wallet →</button>
+    <a class="btn-secondary" href="https://x.com/arc" target="_blank">Follow ARC</a>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-val">0.48s</div>
+    <div class="stat-label">Block Time</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">USDC</div>
+    <div class="stat-label">Gas Token</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">EVM</div>
+    <div class="stat-label">Compatible</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">BFT</div>
+    <div class="stat-label">Malachite Consensus</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">Why ARC</div>
+  <div class="section-title">Everything you need to ship</div>
+  <div class="section-sub">No native token to juggle. No bridging headaches. Just build.</div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">💲</div>
+      <h3>USDC as Gas</h3>
+      <p>Users pay fees in USDC — no volatile native token needed. Predictable costs for every transaction.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⛓</div>
+      <h3>EVM Compatible</h3>
+      <p>Deploy existing Solidity contracts with zero changes. All your tools — Hardhat, Foundry, ethers.js — just work.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Sub-Second Finality</h3>
+      <p>Malachite BFT consensus delivers deterministic finality in 0.48 seconds. Build real-time finance apps with confidence.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🛡</div>
+      <h3>Post-Quantum Security</h3>
+      <p>Wallet signatures use post-quantum cryptography — future-proof against emerging threats.</p>
+    </div>
+  </div>
+</section>
+
+<!-- NETWORK DETAILS -->
+<section id="network">
+  <div class="section-label">Network Info</div>
+  <div class="section-title">Add ARC to MetaMask</div>
+  <div class="section-sub">Click "Add to MetaMask" or copy the details below manually.</div>
+
+  <div style="margin-bottom:1.5rem;">
+    <button class="btn-primary" onclick="addNetwork()">+ Add to MetaMask</button>
+  </div>
+
+  <div class="network-card">
+    <div class="network-header">
+      <div class="dot-green"></div>
+      ARC Network · Testnet
+    </div>
+    <div class="network-row">
+      <span class="network-key">Network Name</span>
+      <span class="network-val">ARC Network <button class="copy-btn" onclick="copyText('ARC Network')">⎘</button></span>
+    </div>
+    <div class="network-row">
+      <span class="network-key">Chain ID</span>
+      <span class="network-val">5042002 <button class="copy-btn" onclick="copyText('5042002')">⎘</button></span>
+    </div>
+    <div class="network-row">
+      <span class="network-key">Gas Token</span>
+      <span class="network-val">USDC</span>
+    </div>
+    <div class="network-row">
+      <span class="network-key">Block Time</span>
+      <span class="network-val">0.48s</span>
+    </div>
+    <div class="network-row">
+      <span class="network-key">Consensus</span>
+      <span class="network-val">Malachite BFT</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://x.com/arc" target="_blank">🚀 ARC Official</a>
+    <a href="https://x.com/Rosh_w3" target="_blank">🐦 Roshni</a>
+    <a href="#">📄 Docs</a>
+  </div>
+  💜 Built by Roshni
+</footer>
+
+<!-- WALLET MODAL -->
+<div id="walletModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Connect Wallet</h2>
+    <p>Choose your wallet to connect to ARC Network.</p>
+
+    <button class="wallet-option" onclick="connectMetaMask()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask"/>
+      MetaMask
+    </button>
+
+    <button class="wallet-option" onclick="showToast('WalletConnect coming soon', 'error')">
+      <img src="https://avatars.githubusercontent.com/u/37784886" alt="WalletConnect"/>
+      WalletConnect <span style="font-size:.75rem;color:var(--muted);margin-left:auto">Soon</span>
+    </button>
+
+    <button class="wallet-option" onclick="showToast('Coinbase Wallet coming soon', 'error')">
+      <img src="https://avatars.githubusercontent.com/u/1885080" alt="Coinbase"/>
+      Coinbase Wallet <span style="font-size:.75rem;color:var(--muted);margin-left:auto">Soon</span>
+    </button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
 <script>
-/* ================= MUSIC SYSTEM ================= */
+  // ── ARC Network config ──
+  const ARC_CHAIN = {
+    chainId: '0x' + (5042002).toString(16),
+    chainName: 'ARC Network',
+    nativeCurrency: { name: 'USD Coin', symbol: 'USDC', decimals: 18 },
+    rpcUrls: ['https://rpc.arcnetwork.xyz'],          // replace with real RPC
+    blockExplorerUrls: ['https://explorer.arcnetwork.xyz'] // replace with real explorer
+  };
 
-let musicStarted = false;
+  // ── Modal ──
+  function openModal() { document.getElementById('walletModal').classList.add('open'); }
+  function closeModal() { document.getElementById('walletModal').classList.remove('open'); }
+  document.getElementById('walletModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('walletModal')) closeModal();
+  });
 
-function tryPlayMusic() {
-    if (musicStarted) return;
+  // ── Toast ──
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'show ' + type;
+    setTimeout(() => t.className = '', 3000);
+  }
 
-    let audio = document.getElementById("bgmusic");
+  // ── Copy ──
+  function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copied: ' + text, 'success'));
+  }
 
-    audio.play().then(() => {
-        musicStarted = true;
-        console.log("Music started");
-    }).catch(() => {
-        console.log("Autoplay blocked");
-    });
-}
-
-// auto try on load
-window.addEventListener("load", tryPlayMusic);
-
-// fallback on first interaction
-document.addEventListener("click", tryPlayMusic);
-
-
-/* ================= WALLET SYSTEM ================= */
-
-let web3Modal;
-let provider;
-
-function initWallet() {
-    web3Modal = new window.Web3Modal.default({
-        cacheProvider: false,
-        providerOptions: {}
-    });
-}
-
-async function connectWallet() {
+  // ── MetaMask Connect ──
+  async function connectMetaMask() {
+    if (!window.ethereum) {
+      showToast('MetaMask not found. Please install it.', 'error');
+      window.open('https://metamask.io/download/', '_blank');
+      return;
+    }
     try {
-        const instance = await web3Modal.connect();
+      // 1. Request accounts
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
 
-        provider = new ethers.BrowserProvider(instance);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-
-        document.getElementById("status").innerText =
-            "Connected: " + address;
-
-        instance.on("accountsChanged", (accounts) => {
-            document.getElementById("status").innerText =
-                "Connected: " + accounts[0];
+      // 2. Try switching to ARC network
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: ARC_CHAIN.chainId }]
         });
+      } catch (switchErr) {
+        // Chain not added yet — add it
+        if (switchErr.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [ARC_CHAIN]
+          });
+        } else {
+          throw switchErr;
+        }
+      }
+
+      // 3. Update UI
+      const addr = accounts[0];
+      const short = addr.slice(0, 6) + '...' + addr.slice(-4);
+      const btn = document.getElementById('connectBtn');
+      btn.classList.add('connected');
+      document.getElementById('btnLabel').textContent = short;
+      closeModal();
+      showToast('✅ Connected: ' + short, 'success');
+
+      // 4. Listen for account/network changes
+      window.ethereum.on('accountsChanged', accs => {
+        if (accs.length === 0) disconnectWallet();
+        else {
+          const s = accs[0].slice(0,6) + '...' + accs[0].slice(-4);
+          document.getElementById('btnLabel').textContent = s;
+        }
+      });
+      window.ethereum.on('chainChanged', () => location.reload());
 
     } catch (err) {
-        alert("Wallet connection cancelled");
+      if (err.code === 4001) showToast('Connection rejected by user.', 'error');
+      else showToast('Error: ' + err.message, 'error');
     }
-}
+  }
 
-window.addEventListener("load", initWallet);
+  function disconnectWallet() {
+    const btn = document.getElementById('connectBtn');
+    btn.classList.remove('connected');
+    document.getElementById('btnLabel').textContent = 'Connect Wallet';
+    showToast('Wallet disconnected.', '');
+  }
+
+  // ── Add Network directly (from network section) ──
+  async function addNetwork() {
+    if (!window.ethereum) {
+      showToast('MetaMask not found. Please install it.', 'error');
+      window.open('https://metamask.io/download/', '_blank');
+      return;
+    }
+    try {
+      await window.ethereum.request({
+        method: 'wallet_addEthereumChain',
+        params: [ARC_CHAIN]
+      });
+      showToast('✅ ARC Network added to MetaMask!', 'success');
+    } catch (e) {
+      showToast('Could not add network: ' + e.message, 'error');
+    }
+  }
+
+  // ── Check if already connected on load ──
+  window.addEventListener('load', async () => {
+    if (window.ethereum) {
+      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+      if (accounts.length > 0) {
+        const short = accounts[0].slice(0,6) + '...' + accounts[0].slice(-4);
+        document.getElementById('connectBtn').classList.add('connected');
+        document.getElementById('btnLabel').textContent = short;
+      }
+    }
+  });
+
+  // ── BACKGROUND MUSIC (MP3) ──
+  const audio = document.getElementById('bgAudio');
+  audio.volume = 0.35;
+  let soundPlaying = false;
+
+  function setSoundUI(playing) {
+    const btn = document.getElementById('soundBtn');
+    if (playing) {
+      btn.textContent = '🔊';
+      btn.style.borderColor = 'var(--arc)';
+      btn.style.color = 'var(--arc-light)';
+    } else {
+      btn.textContent = '🔇';
+      btn.style.borderColor = 'var(--border)';
+      btn.style.color = 'var(--muted)';
+    }
+  }
+
+  function toggleSound() {
+    if (!soundPlaying) {
+      audio.play().then(() => {
+        soundPlaying = true;
+        setSoundUI(true);
+        showToast('🎵 Music on', 'success');
+      }).catch(() => {
+        showToast('Could not play audio', 'error');
+      });
+    } else {
+      audio.pause();
+      soundPlaying = false;
+      setSoundUI(false);
+      showToast('🔇 Music off', '');
+    }
+  }
+
+  // Auto-start on first user interaction anywhere on page
+  let autoStarted = false;
+  function autoStartSound() {
+    if (autoStarted) return;
+    autoStarted = true;
+    audio.play().then(() => {
+      soundPlaying = true;
+      setSoundUI(true);
+    }).catch(() => {});
+    document.removeEventListener('click', autoStartSound);
+    document.removeEventListener('keydown', autoStartSound);
+    document.removeEventListener('touchstart', autoStartSound);
+  }
+  document.addEventListener('click', autoStartSound);
+  document.addEventListener('keydown', autoStartSound);
+  document.addEventListener('touchstart', autoStartSound);
 </script>
-
 </body>
 </html>
